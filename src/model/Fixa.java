@@ -1,6 +1,7 @@
 package model;
 
-public class Fixa extends Solicitacao{
+
+public class Fixa extends Solicitacao {
     private String disciplina;
     public Fixa(int ano, String semestre, String curso, String disciplina,int vagas, String horario) {
         super(ano, semestre, curso, horario, vagas);
