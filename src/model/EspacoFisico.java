@@ -1,10 +1,13 @@
 package model;
 
 import javax.xml.transform.SourceLocator;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public abstract class EspacoFisico {
+public abstract class EspacoFisico implements Serializable {
+    private static final long serialVersionUID = 1L;
     protected String nome;
     protected int capacidade;
     protected List<Solicitacao> eventosAlocados;
@@ -35,9 +38,27 @@ public abstract class EspacoFisico {
         return eventosAlocados;
     }
 
+    public void setEventosAlocados(List<Solicitacao> eventosAlocados) {
+        this.eventosAlocados = eventosAlocados;
+    }
+
     public void addEvento(Solicitacao solicitacao) {
         eventosAlocados.add(solicitacao);
     }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EspacoFisico that = (EspacoFisico) o;
+        return capacidade == that.capacidade &&
+                Objects.equals(nome, that.nome);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nome, capacidade);
+    }
+
 
     @Override
     public String toString() {

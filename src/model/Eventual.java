@@ -1,10 +1,11 @@
 package model;
 
 import javax.xml.crypto.Data;
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class Eventual extends Solicitacao{
+public class Eventual extends Solicitacao {
     private String finalidade;
     private LocalDate dataInicio;
     private LocalDate dataFim;

@@ -6,12 +6,13 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Departamento {
     private List<Solicitacao> solicitacoesPendentes;
     private ArrayList<EspacoFisico> espacosFisicos;
     private Map<EspacoFisico, List<Solicitacao>> alocacoes = null;
-
 
     public Departamento() {
         solicitacoesPendentes = new ArrayList<>();
@@ -20,10 +21,15 @@ public class Departamento {
         alocacoes = new HashMap<>();
     }
 
+    public ArrayList<EspacoFisico> getEspacosFisicos() {
+        return espacosFisicos;
+    }
+    public void setAlocacoes(Map<EspacoFisico, List<Solicitacao>> alocacoes) {
+        this.alocacoes = alocacoes;
+    }
     public Map<EspacoFisico, List<Solicitacao>> getAlocacoes() {
         return alocacoes;
     }
-
     public ArrayList<Solicitacao> lerSolicitacoes(String fileName){
         try(BufferedReader bf = new BufferedReader(new FileReader(fileName))) {
             String line;
@@ -134,7 +140,7 @@ public class Departamento {
         return  espacoFisico;
     }
 
-    public void alocarSolicitacao(){
+    public void alocarSolicitacao() throws IOException {
         if (!solicitacoesPendentes.isEmpty()){
             Solicitacao solicitacao = solicitacoesPendentes.get(0);
             EspacoFisico melhorEspacoFisico = null;
@@ -143,6 +149,7 @@ public class Departamento {
             if (solicitacao instanceof Fixa){
                 for (EspacoFisico key : espacosFisicos){
                     if (key.getEventosAlocados().isEmpty()){
+                        System.out.println("Aaaaaa");
                         int diferenca = key.getCapacidade() - solicitacao.getVagas();
                         if (diferenca >= 0){
                             if (diferenca < menor){
@@ -172,10 +179,10 @@ public class Departamento {
                 }
                 if (melhorEspacoFisico != null){
                     melhorEspacoFisico.addEvento(solicitacao);
-                    alocacoes.put(melhorEspacoFisico, melhorEspacoFisico.getEventosAlocados());
+                    adicionarAlocacao(melhorEspacoFisico, solicitacao);
                     solicitacoesPendentes.remove(0);
                     atualizarSolicitacoesPendentes("C:\\Users\\RodrigoDev\\Documents\\trabalhoLP2\\src\\solicitacoesPendentes", (ArrayList<Solicitacao>) solicitacoesPendentes);
-                    escreverHashMapEmArquivo(alocacoes, "C:\\Users\\RodrigoDev\\Documents\\trabalhoLP2\\src\\solicitacoesAlocadas");
+                    escreverAlocacoesEmArquivo("C:\\Users\\RodrigoDev\\Documents\\trabalhoLP2\\src\\solicitacoesAlocadas.bin");
                 }
             }
             else if (solicitacao instanceof Eventual){
@@ -215,15 +222,15 @@ public class Departamento {
                 }
                 if (melhorEspacoFisico != null){
                     melhorEspacoFisico.addEvento(solicitacao);
-
-                    alocacoes.put(melhorEspacoFisico, melhorEspacoFisico.getEventosAlocados());
+                    adicionarAlocacao(melhorEspacoFisico, solicitacao);
                     solicitacoesPendentes.remove(0);
                     atualizarSolicitacoesPendentes("C:\\Users\\RodrigoDev\\Documents\\trabalhoLP2\\src\\solicitacoesPendentes", (ArrayList<Solicitacao>) solicitacoesPendentes);
-                    escreverHashMapEmArquivo(alocacoes, "C:\\Users\\RodrigoDev\\Documents\\trabalhoLP2\\src\\solicitacoesAlocadas");
+                    escreverAlocacoesEmArquivo("C:\\Users\\RodrigoDev\\Documents\\trabalhoLP2\\src\\solicitacoesAlocadas.bin");
                 }
             }
         }
     }
+
     public boolean verificarConflito(Solicitacao solicitacao, EspacoFisico espacoFisico) {
         boolean dias = false, turnos = false, horarios = false, semestres = false;
         for (Solicitacao x : espacoFisico.getEventosAlocados()) {
@@ -270,94 +277,66 @@ public class Departamento {
 
         return conflitosGerais;
     }
-    private void escreverHashMapEmArquivo(Map<EspacoFisico, List<Solicitacao>> alocacoes, String fileName) { //ARRUMAR ESSA AQUI!!!!
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
-            for (Map.Entry<EspacoFisico, List<Solicitacao>> entry : alocacoes.entrySet()) {
-                // Escreve a chave (EspacoFisico) apenas uma vez
-                bw.write("key: " + entry.getKey().getNome());
-                bw.newLine();
-
-                // Escreve os elementos (Solicitacao) associados à chave
-                List<Solicitacao> solicitacoes = entry.getValue();
-                for (Solicitacao solicitacao : solicitacoes) {
-                    // Escreve o elemento (Solicitacao)
-                    if (solicitacao instanceof Fixa) {
-                        bw.write("elemento: " + ((Fixa) solicitacao).toStringArquivo());
-                        bw.newLine();
-                    } else if (solicitacao instanceof Eventual) {
-                        bw.write("elemento: " + ((Eventual) solicitacao).toStringArquivo());
-                        bw.newLine();
-                    }
-                }
-
-                // Adiciona uma linha em branco para separar as entradas no arquivo
-                bw.newLine();
-            }
+    public void escreverAlocacoesEmArquivo(String fileName) {
+        try (ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(fileName))) {
+            outputStream.writeObject(alocacoes);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error writing allocations to the file: " + e.getMessage(), e);
         }
     }
 
-    public void carregarAlocados(String fileName) {
-        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            EspacoFisico chaveAtual = null;
-            List<Solicitacao> elementosAtuais = new ArrayList<>();
-            ArrayList<String> nomesEspacos = new ArrayList<>();
-            while ((line = br.readLine()) != null) {
-                if (line.startsWith("key: ")) {
-                    // Nova chave encontrada
-                    String nomeEspacoFisico = line.substring("key: ".length());
-                    chaveAtual = encontrarEspacoFisicoPorNome(nomeEspacoFisico);
-                    elementosAtuais = new ArrayList<>();
-                } else if (line.startsWith("elemento: ")) {
-                    // Elemento associado à chave atual
-                    String elementoInfo = line.substring("elemento: ".length());
-                    Solicitacao solicitacao = criarSolicitacaoAPartirDaString(elementoInfo);
-                    elementosAtuais.add(solicitacao);
-                } else if (line.isEmpty()) {
-                    // Linha em branco indica término de entrada
-                    if (chaveAtual != null) {
-                        System.out.println("DDDDD");
-                        alocacoes.put(chaveAtual, elementosAtuais);
-                        chaveAtual = null;
-                        elementosAtuais = new ArrayList<>();
-                    }
+    // Method to add an allocation to its respective key without overwriting the rest of the elements in the list
+    public void adicionarAlocacao(EspacoFisico espacoFisico, Solicitacao solicitacao) {
+        if (alocacoes.containsKey(espacoFisico)) {
+            List<Solicitacao> eventosAlocados = new ArrayList<>(alocacoes.get(espacoFisico));
+            eventosAlocados.add(solicitacao);
+            alocacoes.put(espacoFisico, eventosAlocados);
+        } else {
+            // If the key does not exist yet, create a new entry in the map
+            alocacoes.put(espacoFisico, new ArrayList<>(Collections.singletonList(solicitacao)));
+        }
+        // After adding the allocation, write to the file to keep the updates persistent
+        escreverAlocacoesEmArquivo("C:\\Users\\RodrigoDev\\Documents\\trabalhoLP2\\src\\solicitacoesAlocadas.bin");
+    }
+
+//    @SuppressWarnings("unchecked") // Suppressing unchecked warning for casting
+//    public Map<EspacoFisico, List<Solicitacao>> lerAlocacoesDoArquivo(String fileName) {
+//        try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(fileName))) {
+//            return (Map<EspacoFisico, List<Solicitacao>>) inputStream.readObject();
+//        } catch (IOException | ClassNotFoundException e) {
+//            throw new RuntimeException("Error reading allocations from the file: " + e.getMessage(), e);
+//        }
+//    }
+    @SuppressWarnings("unchecked")
+    public Map<EspacoFisico, List<Solicitacao>> lerAlocacoesDoArquivo(String fileName, List<EspacoFisico> espacosFisicos) {
+        try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(fileName))) {
+            Map<EspacoFisico, List<Solicitacao>> alocacoesLidas = (Map<EspacoFisico, List<Solicitacao>>) inputStream.readObject();
+
+            // Iterar sobre as alocações lidas do arquivo
+            for (Map.Entry<EspacoFisico, List<Solicitacao>> entry : alocacoesLidas.entrySet()) {
+                EspacoFisico espacoFisico = espacoFisicoExistente(entry.getKey(), espacosFisicos);
+                if (espacoFisico != null) {
+                    // Atribuir a lista de solicitações ao EspacoFisico correspondente
+                    espacoFisico.setEventosAlocados(entry.getValue());
                 }
             }
-            if (chaveAtual != null && !elementosAtuais.isEmpty()) {
-                getAlocacoes().put(chaveAtual, elementosAtuais);
+            return alocacoesLidas;
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException("Erro ao ler alocações do arquivo: " + e.getMessage(), e);
+        }
+    }
+
+    private EspacoFisico espacoFisicoExistente(EspacoFisico novoEspacoFisico, List<EspacoFisico> espacosFisicos) {
+        for (EspacoFisico espacoFisicoExistente : espacosFisicos) {
+            if (espacoFisicoExistente.getNome().equals(novoEspacoFisico.getNome()) &&
+                    espacoFisicoExistente.getCapacidade() == novoEspacoFisico.getCapacidade()) {
+                return espacoFisicoExistente;
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
+        return null;
     }
-    private EspacoFisico encontrarEspacoFisicoPorNome(String nome) {
-        for (EspacoFisico espacoFisico : espacosFisicos) {
-            if (espacoFisico.getNome().equals(nome)) {
-                return espacoFisico;
-            }
-        }
-        return null; // Se nenhum EspacoFisico com o nome fornecido for encontrado
-    }
-
-    private Solicitacao criarSolicitacaoAPartirDaString(String info) {
-        String[] separado = info.split(";");
-
-        separado[0] = separado[0].toUpperCase();
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-        if (separado[0].equals("FIXA")) {
-            return new Fixa(Integer.parseInt(separado[1]), separado[2], separado[3], separado[4],
-                    Integer.parseInt(separado[5]), separado[6]);
-        } else if (separado[0].equals("EVENTUAL")) {
-            return new Eventual(Integer.parseInt(separado[1]), separado[2], separado[3], separado[4],
-                    Integer.parseInt(separado[5]), separado[6], LocalDate.parse(separado[7], dtf), LocalDate.parse(separado[8], dtf));
-        }
-
-        return null; // Caso o tipo de Solicitacao não seja reconhecido
-    }
-
-
 }
+
+
+
 

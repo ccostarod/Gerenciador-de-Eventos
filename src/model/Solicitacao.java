@@ -1,6 +1,9 @@
 package model;
 
-public abstract class Solicitacao {
+import java.awt.*;
+import java.io.Serializable;
+
+public abstract class Solicitacao  implements Serializable {
     protected int ano;
     protected String semestre;
     protected String curso;
