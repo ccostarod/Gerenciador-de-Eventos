@@ -15,4 +15,8 @@ public class Fixa extends Solicitacao {
     public void setDisciplina(String disciplina) {
         this.disciplina = disciplina;
     }
+
+    public String toStringArquivo(){
+        return "fixa;" + ano + ";" + semestre + ";" + curso + ";" + disciplina + ";" + vagas + ";" + horario;
+    }
 }

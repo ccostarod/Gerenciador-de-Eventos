@@ -45,4 +45,8 @@ public abstract class EspacoFisico {
                 "nome='" + nome + '\'' +
                 ", capacidade=" + capacidade + '}';
     }
+
+    public String toStringArquivo(){
+        return nome + ";" + capacidade;
+    }
 }

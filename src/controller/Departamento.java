@@ -5,44 +5,24 @@ import model.*;
 import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 
 public class Departamento {
     private List<Solicitacao> solicitacoesPendentes;
-    private Hashtable<String, EspacoFisico> espacosFisicos;
-    private Hashtable<EspacoFisico, Solicitacao> dados;
-    private Hashtable<Integer, Hashtable<EspacoFisico, Solicitacao>> solicitacoesAlocadas;
+    private ArrayList<EspacoFisico> espacosFisicos;
+    private Map<EspacoFisico, List<Solicitacao>> alocacoes = null;
+
 
     public Departamento() {
         solicitacoesPendentes = new ArrayList<>();
-        espacosFisicos = new Hashtable<>();
-        dados = new Hashtable<>();
-        solicitacoesAlocadas = new Hashtable<Integer, Hashtable<EspacoFisico, Solicitacao>>();
+        espacosFisicos = new ArrayList<>();
         carregarArquivos("C:\\Users\\RodrigoDev\\Documents\\trabalhoLP2\\src\\solicitacoesPendentes");
+        alocacoes = new HashMap<>();
     }
 
-    public Hashtable<EspacoFisico, Solicitacao> getDados() {
-        return dados;
+    public Map<EspacoFisico, List<Solicitacao>> getAlocacoes() {
+        return alocacoes;
     }
-
-    public Hashtable<Integer, Hashtable<EspacoFisico, Solicitacao>> getSolicitacoesAlocadas() {
-        return solicitacoesAlocadas;
-    }
-
-    public Hashtable<String, EspacoFisico> getEspacosFisicos() {
-        return espacosFisicos;
-    }
-
-    public Hashtable<EspacoFisico, Solicitacao> getEventosAlocados() {
-        return dados;
-    }
-
-    public List<Solicitacao> getSolicitacoesPendentes() {
-        return solicitacoesPendentes;
-    }
-
 
     public ArrayList<Solicitacao> lerSolicitacoes(String fileName){
         try(BufferedReader bf = new BufferedReader(new FileReader(fileName))) {
@@ -68,7 +48,6 @@ public class Departamento {
             throw new RuntimeException(e);
         }
     }
-
     public void limparArquivo(String fileName) {
         try {
             // Cria um objeto FileWriter com o caminho do arquivo
@@ -127,7 +106,7 @@ public class Departamento {
                             Eventual eventual = (Eventual) solicitacao;
                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                             // Escreve no arquivo para instâncias de Eventual
-                            String linha = String.format("eventual;%d;%s;%s;%s;%d;%s;%s;%s;",
+                            String linha = String.format("eventual;%d;%s;%s;%s;%d;%s;%s;%s",
                                     eventual.getAno(), eventual.getSemestre(), eventual.getCurso(),
                                     eventual.getFinalidade(), eventual.getVagas(), eventual.getHorario(),
                                     eventual.getDataInicio().format(formatter), eventual.getDataFim().format(formatter));
@@ -141,23 +120,19 @@ public class Departamento {
             throw new RuntimeException(e);
         }
     }
-
     public void carregarArquivos(String fileName){
         solicitacoesPendentes = lerSolicitacoes(fileName);
     }
-
     public EspacoFisico adicionarSala(String nome, int capacidade){
         EspacoFisico espacoFisico = new Sala(nome, capacidade);
-        espacosFisicos.put(espacoFisico.getNome(), espacoFisico);
+        espacosFisicos.add(espacoFisico);
         return espacoFisico;
     }
-
     public EspacoFisico adicionarAuditorio(String nome, int capacidade){
         EspacoFisico espacoFisico = new Auditorio(nome, capacidade);
-        espacosFisicos.put(espacoFisico.getNome(), espacoFisico);
+        espacosFisicos.add(espacoFisico);
         return  espacoFisico;
     }
-
 
     public void alocarSolicitacao(){
         if (!solicitacoesPendentes.isEmpty()){
@@ -166,28 +141,28 @@ public class Departamento {
             int menor = Integer.MAX_VALUE;
             int i = 0;
             if (solicitacao instanceof Fixa){
-                for (String key : espacosFisicos.keySet()){
-                    if (espacosFisicos.get(key).getEventosAlocados().isEmpty()){
-                        int diferenca = espacosFisicos.get(key).getCapacidade() - solicitacao.getVagas();
+                for (EspacoFisico key : espacosFisicos){
+                    if (key.getEventosAlocados().isEmpty()){
+                        int diferenca = key.getCapacidade() - solicitacao.getVagas();
                         if (diferenca >= 0){
                             if (diferenca < menor){
                                 menor = diferenca;
-                                melhorEspacoFisico = espacosFisicos.get(key);
+                                melhorEspacoFisico = key;
                             }
                         }
                     }
                     else{
-                        if (verificarConflito(solicitacao,espacosFisicos.get(key))){
+                        if (verificarConflito(solicitacao,key)){
                             System.out.println("Houve conflito!");
                         }
                         else{
-                            int diferenca = espacosFisicos.get(key).getCapacidade() - solicitacao.getVagas();
+                            int diferenca = key.getCapacidade() - solicitacao.getVagas();
                             if (diferenca >= 0){
                                 if (diferenca < menor){
                                     menor = diferenca;
-                                    melhorEspacoFisico = espacosFisicos.get(key);
+                                    melhorEspacoFisico = key;
                                     if (!espacosFisicos.isEmpty())
-                                        i = espacosFisicos.size() -1 ;
+                                        i = espacosFisicos.size() - 1;
                                     else
                                         i = 0;
                                 }
@@ -197,40 +172,40 @@ public class Departamento {
                 }
                 if (melhorEspacoFisico != null){
                     melhorEspacoFisico.addEvento(solicitacao);
-                    dados.put(melhorEspacoFisico, solicitacao);
-                    solicitacoesAlocadas.put(i, dados);
+                    alocacoes.put(melhorEspacoFisico, melhorEspacoFisico.getEventosAlocados());
                     solicitacoesPendentes.remove(0);
                     atualizarSolicitacoesPendentes("C:\\Users\\RodrigoDev\\Documents\\trabalhoLP2\\src\\solicitacoesPendentes", (ArrayList<Solicitacao>) solicitacoesPendentes);
+                    escreverHashMapEmArquivo(alocacoes, "C:\\Users\\RodrigoDev\\Documents\\trabalhoLP2\\src\\solicitacoesAlocadas");
                 }
             }
             else if (solicitacao instanceof Eventual){
-                for (String key : espacosFisicos.keySet()){
-                    if (espacosFisicos.get(key) instanceof Auditorio && espacosFisicos.get(key).getEventosAlocados().isEmpty()){
-                        int diferenca = espacosFisicos.get(key).getCapacidade() - solicitacao.getVagas();
+                for (EspacoFisico key : espacosFisicos){
+                    if (key instanceof Auditorio && key.getEventosAlocados().isEmpty()){
+                        int diferenca = key.getCapacidade() - solicitacao.getVagas();
                         if (diferenca >= 0){
                             if (diferenca <= menor){
                                 menor = diferenca;
-                                melhorEspacoFisico = espacosFisicos.get(key);
+                                melhorEspacoFisico = key;
                                 if (!espacosFisicos.isEmpty())
-                                    i = espacosFisicos.size() -1 ;
+                                    i = espacosFisicos.size() - 1 ;
                                 else
                                     i = 0;
                             }
                         }
                     }
-                    else if(espacosFisicos.get(key) instanceof Auditorio){
-                        if (verificarConflitosEventual(solicitacao, espacosFisicos.get(key))){
+                    else if(key instanceof Auditorio){
+                        if (verificarConflitosEventual(solicitacao, key)){
                             System.out.println("Houve Conflito");
                             break;
                         }
                         else{
-                            int diferenca = espacosFisicos.get(key).getCapacidade() - solicitacao.getVagas();
+                            int diferenca = key.getCapacidade() - solicitacao.getVagas();
                             if (diferenca >= 0) {
                                 if (diferenca <= menor){
                                     menor = diferenca;
-                                    melhorEspacoFisico = espacosFisicos.get(key);
+                                    melhorEspacoFisico = key;
                                     if (!espacosFisicos.isEmpty())
-                                        i = espacosFisicos.size() -1 ;
+                                        i = espacosFisicos.size() - 1 ;
                                     else
                                         i = 0;
                                 }
@@ -240,11 +215,11 @@ public class Departamento {
                 }
                 if (melhorEspacoFisico != null){
                     melhorEspacoFisico.addEvento(solicitacao);
-                    dados.put(melhorEspacoFisico, solicitacao);
-                    solicitacoesAlocadas.put(i, dados);
+
+                    alocacoes.put(melhorEspacoFisico, melhorEspacoFisico.getEventosAlocados());
                     solicitacoesPendentes.remove(0);
-                    System.out.println("Foi");
                     atualizarSolicitacoesPendentes("C:\\Users\\RodrigoDev\\Documents\\trabalhoLP2\\src\\solicitacoesPendentes", (ArrayList<Solicitacao>) solicitacoesPendentes);
+                    escreverHashMapEmArquivo(alocacoes, "C:\\Users\\RodrigoDev\\Documents\\trabalhoLP2\\src\\solicitacoesAlocadas");
                 }
             }
         }
@@ -295,18 +270,94 @@ public class Departamento {
 
         return conflitosGerais;
     }
-    public void atualizarSolicitacoesAlocadas(String fileName, Hashtable<Integer, Hashtable<EspacoFisico, Solicitacao>>){
-        try(BufferedWriter bw = new BufferedWriter(new FileWriter(fileName))){
-            for (Integer x : solicitacoesAlocadas.keySet()){
-                String linha = null;
-                linha = ("%d|%s;%d|%d%s%s%s");
+    private void escreverHashMapEmArquivo(Map<EspacoFisico, List<Solicitacao>> alocacoes, String fileName) { //ARRUMAR ESSA AQUI!!!!
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName, true))) {
+            for (Map.Entry<EspacoFisico, List<Solicitacao>> entry : alocacoes.entrySet()) {
+                // Escreve a chave (EspacoFisico) apenas uma vez
+                bw.write("key: " + entry.getKey().getNome());
+                bw.newLine();
+
+                // Escreve os elementos (Solicitacao) associados à chave
+                List<Solicitacao> solicitacoes = entry.getValue();
+                for (Solicitacao solicitacao : solicitacoes) {
+                    // Escreve o elemento (Solicitacao)
+                    if (solicitacao instanceof Fixa) {
+                        bw.write("elemento: " + ((Fixa) solicitacao).toStringArquivo());
+                        bw.newLine();
+                    } else if (solicitacao instanceof Eventual) {
+                        bw.write("elemento: " + ((Eventual) solicitacao).toStringArquivo());
+                        bw.newLine();
+                    }
+                }
+
+                // Adiciona uma linha em branco para separar as entradas no arquivo
+                bw.newLine();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    //todo gerarRelatorio;
-    //todo gravarDecisoes;
+    public void carregarAlocados(String fileName) {
+        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            EspacoFisico chaveAtual = null;
+            List<Solicitacao> elementosAtuais = new ArrayList<>();
+            ArrayList<String> nomesEspacos = new ArrayList<>();
+            while ((line = br.readLine()) != null) {
+                if (line.startsWith("key: ")) {
+                    // Nova chave encontrada
+                    String nomeEspacoFisico = line.substring("key: ".length());
+                    chaveAtual = encontrarEspacoFisicoPorNome(nomeEspacoFisico);
+                    elementosAtuais = new ArrayList<>();
+                } else if (line.startsWith("elemento: ")) {
+                    // Elemento associado à chave atual
+                    String elementoInfo = line.substring("elemento: ".length());
+                    Solicitacao solicitacao = criarSolicitacaoAPartirDaString(elementoInfo);
+                    elementosAtuais.add(solicitacao);
+                } else if (line.isEmpty()) {
+                    // Linha em branco indica término de entrada
+                    if (chaveAtual != null) {
+                        System.out.println("DDDDD");
+                        alocacoes.put(chaveAtual, elementosAtuais);
+                        chaveAtual = null;
+                        elementosAtuais = new ArrayList<>();
+                    }
+                }
+            }
+            if (chaveAtual != null && !elementosAtuais.isEmpty()) {
+                getAlocacoes().put(chaveAtual, elementosAtuais);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    private EspacoFisico encontrarEspacoFisicoPorNome(String nome) {
+        for (EspacoFisico espacoFisico : espacosFisicos) {
+            if (espacoFisico.getNome().equals(nome)) {
+                return espacoFisico;
+            }
+        }
+        return null; // Se nenhum EspacoFisico com o nome fornecido for encontrado
+    }
+
+    private Solicitacao criarSolicitacaoAPartirDaString(String info) {
+        String[] separado = info.split(";");
+
+        separado[0] = separado[0].toUpperCase();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        if (separado[0].equals("FIXA")) {
+            return new Fixa(Integer.parseInt(separado[1]), separado[2], separado[3], separado[4],
+                    Integer.parseInt(separado[5]), separado[6]);
+        } else if (separado[0].equals("EVENTUAL")) {
+            return new Eventual(Integer.parseInt(separado[1]), separado[2], separado[3], separado[4],
+                    Integer.parseInt(separado[5]), separado[6], LocalDate.parse(separado[7], dtf), LocalDate.parse(separado[8], dtf));
+        }
+
+        return null; // Caso o tipo de Solicitacao não seja reconhecido
+    }
+
+
 }
 

@@ -1,6 +1,8 @@
 package model;
 
+import javax.xml.crypto.Data;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class Eventual extends Solicitacao{
     private String finalidade;
@@ -24,5 +26,10 @@ public class Eventual extends Solicitacao{
 
     public LocalDate getDataFim() {
         return dataFim;
+    }
+
+    public String toStringArquivo(){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return "eventual;" +ano + ";" + semestre + ";" + curso + ";" + finalidade + ";" + vagas + ";" + horario + ";" + dataInicio.format(formatter) + ";" + dataFim.format(formatter);
     }
 }
