@@ -2,6 +2,7 @@ package model;
 
 import java.awt.*;
 import java.io.Serializable;
+import java.util.Objects;
 
 public abstract class Solicitacao  implements Serializable {
     protected int ano;
@@ -16,6 +17,10 @@ public abstract class Solicitacao  implements Serializable {
         this.curso = curso;
         this.horario = horario;
         this.vagas = vagas;
+    }
+
+    public void setCurso(String curso) {
+        this.curso = curso;
     }
 
     public int getAno() {
@@ -93,12 +98,26 @@ public abstract class Solicitacao  implements Serializable {
     }
     @Override
     public String toString() {
-        return "Solicitacao{" +
-                "ano=" + ano +
-                ", semestre='" + semestre + '\'' +
-                ", curso='" + curso + '\'' +
-                ", horario='" + horario + '\'' +
-                ", vagas=" + vagas +
-                '}';
+        return "Ano:" + ano +
+                ", semestre: '" + semestre + '\'' +
+                ", curso: '" + curso + '\'' +
+                ", horario: '" + horario + '\'' +
+                ", vagas: " + vagas;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Solicitacao that = (Solicitacao) obj;
+        return ano == that.ano &&
+                vagas == that.vagas &&
+                Objects.equals(semestre, that.semestre) &&
+                Objects.equals(curso, that.curso) &&
+                Objects.equals(horario, that.horario);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ano, semestre, curso, vagas, horario);
     }
 }

@@ -62,9 +62,7 @@ public abstract class EspacoFisico implements Serializable {
 
     @Override
     public String toString() {
-        return "EspacoFisico{" +
-                "nome='" + nome + '\'' +
-                ", capacidade=" + capacidade + '}';
+        return "Espaco Fisico: " + nome + ", " + capacidade;
     }
 
     public String toStringArquivo(){
