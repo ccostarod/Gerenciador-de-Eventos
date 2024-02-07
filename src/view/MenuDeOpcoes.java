@@ -3,14 +3,15 @@ package view;
 import controller.Departamento;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import model.*;
-
-import java.util.ArrayList;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 import javax.swing.*;
 import static javax.swing.JOptionPane.QUESTION_MESSAGE;
@@ -36,6 +37,8 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         btnCriarSolicitacao = new javax.swing.JButton();
         btnGerarRelat = new javax.swing.JButton();
+        btnLimparArquivos = new javax.swing.JButton();
+        btnSair = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenuRetornar = new javax.swing.JMenu();
 
@@ -44,6 +47,7 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
         setResizable(false);
 
         btnCarregarNS.setText("Carregar novas solicitações");
+        btnCarregarNS.setToolTipText("Transfere as solicitações novas para a lista de pendentes ");
         btnCarregarNS.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnCarregarNSActionPerformed(evt);
@@ -51,20 +55,23 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
         });
 
         btnInserirEspaco.setText("Inserir Espaço");
+        btnInserirEspaco.setToolTipText("Cria um novo espaço físico");
         btnInserirEspaco.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnInserirEspacoActionPerformed(evt);
             }
         });
 
-        btnAlocarEspaco.setText("Alocar Espaços");
+        btnAlocarEspaco.setText("Alocar Solicitações");
+        btnAlocarEspaco.setToolTipText("Aloca solicitações automaticamente");
         btnAlocarEspaco.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt){
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnAlocarEspacoActionPerformed(evt);
             }
         });
 
         btnVisuArquivos.setText("Visualizar Elementos");
+        btnVisuArquivos.setToolTipText("Abre uma janela para visualizar todos os arquivos");
         btnVisuArquivos.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnVisuArquivosActionPerformed(evt);
@@ -75,6 +82,7 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
         jLabel1.setText("Painel de Opções");
 
         btnCriarSolicitacao.setText("Criar Solicitação");
+        btnCriarSolicitacao.setToolTipText("Cria uma nova solicitação pendente");
         btnCriarSolicitacao.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnCriarSolicitacaoActionPerformed(evt);
@@ -82,9 +90,27 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
         });
 
         btnGerarRelat.setText("Gerar Relatorios");
+        btnGerarRelat.setToolTipText("Gera relatorios com base no curso ou no espaço físico escolhido");
         btnGerarRelat.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnGerarRelatActionPerformed(evt);
+            }
+        });
+
+        btnLimparArquivos.setText("Limpar Arquivos");
+        btnLimparArquivos.setToolTipText("Os arquivos que serão limpos:\nsolicitacoesAlocadas, solicitacoesPendentes, EspacosFisicos");
+        btnLimparArquivos.setName(""); // NOI18N
+        btnLimparArquivos.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLimparArquivosActionPerformed(evt);
+            }
+        });
+
+        btnSair.setText("Sair");
+        btnSair.setToolTipText("Fecha o programa");
+        btnSair.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSairActionPerformed(evt);
             }
         });
 
@@ -110,6 +136,7 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
                                         .addGroup(layout.createSequentialGroup()
                                                 .addGap(177, 177, 177)
                                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                        .addComponent(btnLimparArquivos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                                         .addComponent(btnCarregarNS, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
                                                         .addComponent(btnInserirEspaco, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                                         .addComponent(btnGerarRelat, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -117,7 +144,8 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
                                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                                         .addComponent(btnVisuArquivos, javax.swing.GroupLayout.DEFAULT_SIZE, 190, Short.MAX_VALUE)
                                                         .addComponent(btnCriarSolicitacao, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                        .addComponent(btnAlocarEspaco, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                                        .addComponent(btnAlocarEspaco, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(btnSair, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                                 .addContainerGap(177, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -137,12 +165,19 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(btnGerarRelat, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(btnVisuArquivos, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addContainerGap(99, Short.MAX_VALUE))
+                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(btnLimparArquivos, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE)
+                                        .addComponent(btnSair, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGap(61, 61, 61))
         );
+
+        btnLimparArquivos.getAccessibleContext().setAccessibleDescription("Limpar arquivos");
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>
+
 
     private void jMenuRetornarMouseClicked(java.awt.event.MouseEvent evt) {
         TelaDeInicio tela = new TelaDeInicio();
@@ -151,14 +186,20 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
     }
 
     private void btnInserirEspacoActionPerformed(java.awt.event.ActionEvent evt) {
-        String sc = JOptionPane.showInputDialog(this,"Informe o tipo de espaço (SALA ou AUDITORIO","Tipo de Espaço",QUESTION_MESSAGE);
-        String tipoEspaco = sc.toUpperCase();
+        String tipoEspaco = null;
+        String nomeEsp = null;
 
-        String nomeEsp = JOptionPane.showInputDialog(this,"Informe o nome do espaço: ");
+        String sc = JOptionPane.showInputDialog(this,"Informe o tipo de espaço (SALA ou AUDITORIO","Tipo de Espaço",QUESTION_MESSAGE);
+        if(sc!=null)
+            tipoEspaco = sc.toUpperCase();
+        else return;
+
+        String nomeEspaco = JOptionPane.showInputDialog(this,"Informe o nome do espaço: ");
+        if(nomeEspaco!=null) nomeEsp = nomeEspaco;
+        else return;
 
         String capacidadeEspaco = JOptionPane.showInputDialog(this,"Informe a capacidade do espaço: ");
         int capacidadeEsp = Integer.parseInt(capacidadeEspaco);
-
 
         boolean insercaoBemSucedida = departamento.inserirEspacoFisico(tipoEspaco, nomeEsp, capacidadeEsp, "src/espacosFisicos");
         if (insercaoBemSucedida){
@@ -197,7 +238,7 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null,"Alocacao bem sucedida no local: " + espacoFisico.getNome() + ", com capacidade de " + espacoFisico.getCapacidade());
         }
         else{
-            JOptionPane.showMessageDialog(null,"Lista de pendentes está vazia");
+            JOptionPane.showMessageDialog(null,"Houve erro ao alocar: Veja se contem elementos na lista de Pendentes, ou espaco valido");
 
         }
     }
@@ -209,7 +250,8 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
     }
 
     private void btnGerarRelatActionPerformed(java.awt.event.ActionEvent evt) {
-
+        String nomeCurso = null;
+        String nomeEspacoRelatorio = null;
         Object[] opcoes = {"Relatório por Curso", "Relatório por Espaço para Solicitações Fixas"};
         int escolha = JOptionPane.showOptionDialog(this,
                 "Escolha o tipo de relatório:",
@@ -222,7 +264,8 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
 
         if (escolha == JOptionPane.YES_OPTION) {
             String nomeCur = JOptionPane.showInputDialog(this, "Informe o nome do curso para gerar o relatório: ");
-            String nomeCurso = nomeCur.toUpperCase();
+            if(nomeCur!=null) nomeCurso = nomeCur.toUpperCase();
+            else return;
 
             ArrayList<Solicitacao> relatorioCurso = departamento.relatorioPorCurso(nomeCurso);
 
@@ -237,14 +280,15 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
             }
         } else if (escolha == JOptionPane.NO_OPTION) {
             String nomeEsp = JOptionPane.showInputDialog(this, "Informe o nome do espaço para gerar o relatório: ");
-            String nomeEspacoRelatorio = nomeEsp.toUpperCase();
+            if(nomeEsp!=null) nomeEspacoRelatorio = nomeEsp.toUpperCase();
+            else return;
 
             ArrayList<Solicitacao> relatorioEspaco = departamento.relatorioPorEspacoParaFixa(nomeEspacoRelatorio);
 
             if (relatorioEspaco.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Não foram encontradas solicitações fixas para o espaço informado.");
             } else {
-                StringBuilder mensagem = new StringBuilder("Relatório por Espaço para Solicitações Fixas:\n");
+                StringBuilder mensagem = new StringBuilder("Relatório por Espaço para Solicitações:\n");
                 for (Solicitacao solicitacao : relatorioEspaco) {
                     mensagem.append(solicitacao).append("\n");
                 }
@@ -256,29 +300,35 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
     }
 
     private void btnCriarSolicitacaoActionPerformed(java.awt.event.ActionEvent evt) {
+        String tipoSolicitacao = null;
+        String semestreSolicitacao = null;
+        String cursoSolicitacao = null;
+
         String tipoSol = JOptionPane.showInputDialog(null,"Informe o tipo de solicitação (FIXA ou EVENTUAL): ");
-        String tipoSolicitacao = tipoSol.toUpperCase();
+        if(tipoSol!=null) tipoSolicitacao = tipoSol.toUpperCase();
+        else return;
 
         String anoSol = JOptionPane.showInputDialog(null,"Informe o ano da solicitação: ");
         int anoSolicitacao = Integer.parseInt(anoSol);
 
         String semSol = JOptionPane.showInputDialog(null,"Informe o semestre da solicitação: ");
-        String semestreSolicitacao = semSol;
+        if(semSol!=null)
+            semestreSolicitacao = semSol;
+        else return;
 
         String curSol = JOptionPane.showInputDialog(null,"Informe o curso da solicitação: ");
-        String cursoSolicitacao = curSol;
+        if(curSol!=null)
+            cursoSolicitacao = curSol;
+        else return;
 
         // Adicionando condição para escolher entre Fixa e Eventual
         if ("FIXA".equals(tipoSolicitacao)) {
-            String discipSol = JOptionPane.showInputDialog(null,"Informe a disciplina da solicitacao fixa: ");
-            String disciplinaFixa = discipSol;
+            String disciplinaFixa = JOptionPane.showInputDialog(null,"Informe a disciplina da solicitacao fixa: ");
 
             String capacSol = JOptionPane.showInputDialog(null,"Informe a capacidade da solicitação fixa: ");
             int capacidadeFixa = Integer.parseInt(capacSol);
 
-            String horSol = JOptionPane.showInputDialog(null,"Informe o horário da solicitacao fixa (Padrão SIGAA): ");
-
-            String horarioFixa = horSol;
+            String horarioFixa = JOptionPane.showInputDialog(null,"Informe o horário da solicitacao fixa (Padrão SIGAA): ");
 
             boolean insercaoFixaBemSucedida = departamento.inserirSolicitacaoPendenteFixa(disciplinaFixa, anoSolicitacao, semestreSolicitacao, cursoSolicitacao, capacidadeFixa, horarioFixa, "src/solicitacoesPendentes");
             if (insercaoFixaBemSucedida) {
@@ -288,21 +338,17 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "Falha ao inserir a solicitação pendente (Fixa). Verifique se já não existe uma solicitação com os mesmos detalhes.");
             }
         } else if ("EVENTUAL".equals(tipoSolicitacao)) {
-            String finEventual = JOptionPane.showInputDialog(null,"Informe a finalidade da solicitação eventual: ");
-            String finalidadeEventual = finEventual;
+            String finalidadeEventual = JOptionPane.showInputDialog(null,"Informe a finalidade da solicitação eventual: ");
 
             String capEventual = JOptionPane.showInputDialog(null,"Informe a capacidade da solicitação eventual: ");
             int capacidadeEventual = Integer.parseInt(capEventual);
 
-            String horEventual = JOptionPane.showInputDialog(null,"Informe o horário da solicitação eventual (Padrão SIGAA): ");
-            String horarioEventual = horEventual;
+            String horarioEventual = JOptionPane.showInputDialog(null,"Informe o horário da solicitação eventual (Padrão SIGAA): ");
 
-            String dataInicio = JOptionPane.showInputDialog(null,"Informe a data de início (no formato DD/MM/AAAA): ");
-            String dataInicioString = dataInicio;
+            String dataInicioString = JOptionPane.showInputDialog(null,"Informe a data de início (no formato DD/MM/AAAA): ");
             LocalDate dataInicioEventual = LocalDate.parse(dataInicioString, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
-            String dataFinal = JOptionPane.showInputDialog(null,"Informe a data de fim (no formato DD/MM/AAAA): ");
-            String dataFimString = dataFinal;
+            String dataFimString = JOptionPane.showInputDialog(null,"Informe a data de fim (no formato DD/MM/AAAA): ");
             LocalDate dataFimEventual = LocalDate.parse(dataFimString, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
             boolean insercaoEventualBemSucedida = departamento.inserirSolicitacaoPendenteEventual(finalidadeEventual, anoSolicitacao, semestreSolicitacao, cursoSolicitacao, capacidadeEventual, horarioEventual, dataInicioEventual, dataFimEventual,
@@ -328,15 +374,29 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
         return true;
     }
 
-
-
-    public static void main(String args[]){
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new MenuDeOpcoes().setVisible(true);
-            }
-        });
+    private void btnLimparArquivosActionPerformed(java.awt.event.ActionEvent evt) {
+        limparArquivo("src/solicitacoesAlocadas.bin");
+        limparArquivo("src/solicitacoesPendentes");
+        limparArquivo("src/espacosFisicos");
+        JOptionPane.showMessageDialog(null,"Informações dos arquivos apagados com sucesso!");
     }
+
+    private void btnSairActionPerformed(java.awt.event.ActionEvent evt) {
+        this.dispose();
+    }
+
+    public void limparArquivo(String fileName) {
+        try {
+            FileWriter fileWriter = new FileWriter(fileName);
+
+            // Escreve uma string vazia no arquivo para limpar
+            fileWriter.write("");
+            fileWriter.close();
+        } catch (IOException e) {
+            System.err.println("Erro ao limpar o arquivo: " + e.getMessage());
+        }
+    }
+
 
     // Variables declaration - do not modify
     private javax.swing.JButton btnAlocarEspaco;
@@ -344,6 +404,8 @@ public class MenuDeOpcoes extends javax.swing.JFrame {
     private javax.swing.JButton btnCriarSolicitacao;
     private javax.swing.JButton btnGerarRelat;
     private javax.swing.JButton btnInserirEspaco;
+    private javax.swing.JButton btnLimparArquivos;
+    private javax.swing.JButton btnSair;
     private javax.swing.JButton btnVisuArquivos;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JMenuBar jMenuBar1;

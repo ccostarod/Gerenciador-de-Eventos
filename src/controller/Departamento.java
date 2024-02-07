@@ -6,10 +6,10 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.List;
 
 public class Departamento {
     private List<Solicitacao> solicitacoesPendentes;
-    private List<Solicitacao> solicitacoesNovas;
     private ArrayList<EspacoFisico> espacosFisicos;
     private Map<EspacoFisico, List<Solicitacao>> alocacoes;
     private List<Solicitacao> solicitacoesAlocadas;
@@ -40,6 +40,7 @@ public class Departamento {
         return solicitacoesPendentes;
     }
 
+    //LerSolicitacoes, ler todas as solicitacoes contidas no arquivo "solicitacoesNovas" e adiciona a lista de solicitacoes pendentes
     public ArrayList<Solicitacao> lerSolicitacoes(String fileName){
         try(BufferedReader bf = new BufferedReader(new FileReader(fileName))) {
             String line;
@@ -65,20 +66,20 @@ public class Departamento {
         }
     }
 
+    //Função para limpar um arquivo, utilizo para limpar o arquivo "solicitacoesNovas" apos ler ela
     public void limparArquivo(String fileName) {
         try {
-            // Cria um objeto FileWriter com o caminho do arquivo
             FileWriter fileWriter = new FileWriter(fileName);
 
-            // Escreve uma string vazia no arquivo para limpá-lo
+            // Escreve uma string vazia no arquivo para limpar
             fileWriter.write("");
-            // Fecha o FileWriter
             fileWriter.close();
         } catch (IOException e) {
             System.err.println("Erro ao limpar o arquivo: " + e.getMessage());
         }
     }
 
+    //Atualiza o arquivo de solicitacoesPendentes, sobrescrevendo ele com todos os dados da lista de pendentes.
     public void atualizarSolicitacoesPendentes(String fileName, ArrayList<Solicitacao> solicitacaos){
         try(BufferedReader br = new BufferedReader(new FileReader(fileName))){
             if (br.readLine() == null){
@@ -139,11 +140,15 @@ public class Departamento {
         }
     }
 
+    //Limpa solicitacoesPendentes, e depois adiciona tudo que esta no arquivo na lista de novo. Assim pegando dados novos.
     public void carregarArquivos(String fileName){
         solicitacoesPendentes.clear();
         solicitacoesPendentes = lerSolicitacoes(fileName);
     }
 
+    //Metodo responsavel por alocar uma solicitacao, funciona como uma pilha, ou seja, adiciona quem esta no comeco da lista de pendentes.
+    // caso nao consiga alocar uma solicitacao, ele faz com que a solicitacao vá para o final da lista
+    // caso consiga alocar, a solicitacao sai da lista de pendentes.
     public EspacoFisico alocarSolicitacao() {
         if (!solicitacoesPendentes.isEmpty()){
             Solicitacao solicitacao = solicitacoesPendentes.get(0);
@@ -246,13 +251,13 @@ public class Departamento {
                     return melhorEspacoFisico;
                 }
                 else if (existeSolicitacaoAlocada(solicitacao)){
-                    System.out.println("Ja existe uma solicitacao igual alocada!");
+//                    System.out.println("Ja existe uma solicitacao igual alocada!");
                     solicitacoesPendentes.remove(0);
                     atualizarSolicitacoesPendentes("src/solicitacoesPendentes", (ArrayList<Solicitacao>) solicitacoesPendentes);
                     return null;
                 }
                 else {
-                    System.out.println("Nao ha local para alocar essa Solicitacao");
+//                    System.out.println("Nao ha local para alocar essa Solicitacao");
                     solicitacoesPendentes.remove(0);
                     solicitacoesPendentes.add(solicitacao);
                     atualizarSolicitacoesPendentes("src/solicitacoesPendentes", (ArrayList<Solicitacao>) solicitacoesPendentes);
@@ -260,9 +265,11 @@ public class Departamento {
                 }
             }
         }
-        System.out.println("Lista de pendentes esta vazia");
+//        System.out.println("Lista de pendentes esta vazia");
         return null;
     }
+
+    //Metodo para ver se ja nao existe uma solicitacao igual no hashmap de alocados, utilizo ele em outros metodos.
     public boolean existeSolicitacaoAlocada(Solicitacao solicitacao) {
         if (alocacoes != null){
             for (Map.Entry<EspacoFisico, List<Solicitacao>> entry : alocacoes.entrySet()) {
@@ -277,6 +284,7 @@ public class Departamento {
         return false; // Não encontrou uma solicitação igual alocada
     }
 
+    //Metodo para verificar conflito de horarios e semestre principalmente, funciona para solicitacao do tipo Fixa
     public boolean verificarConflito(Solicitacao solicitacao, EspacoFisico espacoFisico) {
         boolean dias = false, turnos = false, horarios = false, semestres = false;
         for (Solicitacao x : espacoFisico.getEventosAlocados()) {
@@ -306,6 +314,7 @@ public class Departamento {
         return dias && turnos && horarios && semestres;
     }
 
+    //Basicamente integra o metodo anterior, mas verifica se as datas conflitem.
     public boolean verificarConflitosEventual(Solicitacao solicitacao, EspacoFisico espacoFisico) {
         boolean conflitosGerais = verificarConflito(solicitacao, espacoFisico);
 
@@ -325,6 +334,7 @@ public class Departamento {
         return conflitosGerais;
     }
 
+    //Escreve as alocacoes no arquivo "solicitacoesAlocadas" diferenta das outras acima, nesse usei ObjectOutputStream.
     public void escreverAlocacoesEmArquivo(String fileName) {
         try (ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(fileName))) {
             outputStream.writeObject(alocacoes);
@@ -333,6 +343,7 @@ public class Departamento {
         }
     }
 
+    //Passando os parametros EspacoFisico e Solicitacao, ele adiciona no hashmap alocacoes, verificando se a chave ja esta ou nao contida no hashmap
     public void adicionarAlocacao(EspacoFisico espacoFisico, Solicitacao solicitacao) {
         if (alocacoes != null) {
             if (alocacoes.containsKey(espacoFisico)) {
@@ -351,12 +362,14 @@ public class Departamento {
 
         escreverAlocacoesEmArquivo("src/solicitacoesAlocadas.bin");
     }
-
+    // Serve apenas para ver se um arquivo esta vazio, utilizei no metodo abaixo.
     public boolean isFileEmpty(String fileName) {
         File file = new File(fileName);
         return file.length() == 0;
     }
-    @SuppressWarnings("unchecked")
+
+    //Aqui ele ler as alocacoes presentes no arquivo "solicitacoesAlocadas" e traz de volta por arquivo, alem disso, reassocia a solicitacao
+    // com seu devido EspacoFisco
     public Map<EspacoFisico, List<Solicitacao>> lerAlocacoesDoArquivo(String fileName, List<EspacoFisico> espacosFisicos) {
         try {
             if (isFileEmpty(fileName)) {
@@ -383,7 +396,7 @@ public class Departamento {
             throw new RuntimeException("Erro ao ler alocações do arquivo: " + e.getMessage(), e);
         }
     }
-
+    //Utilizo para saber se o espacoFisico existe na lista de espacosFisicos
     private EspacoFisico espacoFisicoExistente(EspacoFisico novoEspacoFisico, List<EspacoFisico> espacosFisicos) {
         for (EspacoFisico espacoFisicoExistente : espacosFisicos) {
             if (espacoFisicoExistente.getNome().equals(novoEspacoFisico.getNome()) &&
@@ -393,7 +406,7 @@ public class Departamento {
         }
         return null;
     }
-
+    //Utilizo para saber se o solicitacao existe na lista de solicitacoes
     public Boolean solicitacaoExiste(Solicitacao novaSolicitacao, List<Solicitacao> solicitacoes) {
         for (Solicitacao solicitacaoExistente : solicitacoes) {
             if (solicitacaoExistente.equals(novaSolicitacao)) {
@@ -403,6 +416,7 @@ public class Departamento {
         return false;
     }
 
+    //Basicamente esse gera o relatorio por Curso
     public ArrayList<Solicitacao> relatorioPorCurso(String nomeCurso){
 
         nomeCurso = nomeCurso.toUpperCase();
@@ -421,6 +435,7 @@ public class Departamento {
         return relatorioGerado;
     }
 
+    //Esse gera o relatorio por espacoFisico
     public ArrayList<Solicitacao> relatorioPorEspacoParaFixa(String nomeEspaco){
 
         nomeEspaco = nomeEspaco.toUpperCase();
@@ -441,6 +456,9 @@ public class Departamento {
         return  relatorioGerado;
     }
 
+
+    //Metodo para inserir um espacoFisico ao arquivo "espacosFisicos" alem disso, ele lerEspacoFisicos, alocando todos os espacos
+    // la contidos na lista de espacosFisicos
     public boolean inserirEspacoFisico(String tipo, String nome, int capacidade, String fileName) {
         if (salaExistente(nome, fileName)) {
             System.out.println("Já existe uma sala com o nome '" + nome + "'. Não é possível adicionar outra sala com o mesmo nome.");
@@ -458,6 +476,7 @@ public class Departamento {
         return false;
     }
 
+    //Uso na funcao acima para saber se ja existe uma sala com aquele nome no arquivo.
     private boolean salaExistente(String nome, String fileName) {
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String linha;
@@ -473,6 +492,8 @@ public class Departamento {
         return false;  // Não encontrou sala com o mesmo nome
     }
 
+    //Essa aqui basicamente ler o arquivo de "espacosFisicos" e adiciona todos os elementos de volta a lista de espacos, sobrescrevendo
+    // os que estavam la (desatualizados).
     public List<EspacoFisico> lerEspacosFisicos(String fileName) {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
@@ -491,6 +512,7 @@ public class Departamento {
         return espacosFisicos;
     }
 
+    //Metodo utilizado acima para facilitar a criacao do objeto.
     private EspacoFisico construirEspacoFisico(String linha) {
         String[] partes = linha.split(";");
         if (partes.length >= 3) {
@@ -508,6 +530,7 @@ public class Departamento {
         return null;
     }
 
+    //Insere uma solicitacao Fixa ao arquivo de pendentes.
     public boolean inserirSolicitacaoPendenteFixa(String disciplina, int ano, String semestre, String curso, int vagas, String horario, String fileName) {
         if (solicitacaoPendenteExistente("fixa", disciplina, ano, semestre, curso, horario, fileName)) {
             System.out.println("Já existe uma solicitação pendente (Fixa) com os mesmos detalhes.");
@@ -525,6 +548,7 @@ public class Departamento {
         }
     }
 
+    //Insere uma Eventual
     public boolean inserirSolicitacaoPendenteEventual(String finalidade, int ano, String semestre, String curso, int vagas, String horario, LocalDate dataInicio, LocalDate dataFim, String fileName) {
         if (solicitacaoPendenteExistente("eventual", finalidade, ano, semestre, curso, horario, fileName)) {
             System.out.println("Já existe uma solicitação pendente (Eventual) com os mesmos detalhes.");
@@ -543,6 +567,7 @@ public class Departamento {
         }
     }
 
+    //Serve para verificar se já nao tem algo igual na lista de pendentes, assim caso tenho, nao adicionar.
     private boolean solicitacaoPendenteExistente(String tipo, String detalhes, int ano, String semestre, String curso, String horario, String fileName) {
         try (Scanner scanner = new Scanner(new File(fileName))) {
             while (scanner.hasNextLine()) {
@@ -560,5 +585,11 @@ public class Departamento {
             System.err.println("Erro ao verificar duplicata no arquivo: " + e.getMessage());
         }
         return false;
+    }
+
+    public void limparArquivoGeral(){
+        limparArquivo("src/solicitacoesAlocadas.bin");
+        limparArquivo("src/solicitacoesPendentes");
+        limparArquivo("src/espacosFisicos");
     }
 }

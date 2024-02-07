@@ -1,8 +1,6 @@
 package view;
 
 import controller.Departamento;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import model.*;
 
 import java.util.ArrayList;
@@ -31,6 +29,7 @@ public class VisualizacaoElementos extends javax.swing.JFrame {
         btnRetornar = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Visualização");
 
         btnListaPend.setText("Lista de Pendentes");
         btnListaPend.addActionListener(new java.awt.event.ActionListener() {
@@ -118,13 +117,10 @@ public class VisualizacaoElementos extends javax.swing.JFrame {
         if (departamento.getSolicitacoesPendentes().isEmpty()) {
             JOptionPane.showMessageDialog(null, "A lista de solicitações pendentes está vazia");
         } else {
-            System.out.println("Solicitações Pendentes:");
-
             StringBuilder mensagem = new StringBuilder();
 
             for (Solicitacao solicitacao : departamento.getSolicitacoesPendentes()) {
                 mensagem.append(solicitacao).append("\n");
-                System.out.println(solicitacao);
             }
 
             JOptionPane.showMessageDialog(null, mensagem.toString());
@@ -136,8 +132,6 @@ public class VisualizacaoElementos extends javax.swing.JFrame {
         if (departamento.getAlocacoes() == null) {
             JOptionPane.showMessageDialog(null, "A lista de alocacoes está vazia");
         } else {
-            System.out.println("Conteúdo do HashMap de Alocações:");
-
             StringBuilder mensagem = new StringBuilder();
 
             for (Map.Entry<EspacoFisico, List<Solicitacao>> entry : departamento.getAlocacoes().entrySet()) {
@@ -149,8 +143,8 @@ public class VisualizacaoElementos extends javax.swing.JFrame {
 
                 for (Solicitacao solicitacao : solicitacoesAlocadas) {
                     mensagem.append(" - ").append(solicitacao).append("\n");
-                    System.out.println("  - " + solicitacao);
                 }
+                mensagem.append("\n");
             }
 
             JOptionPane.showMessageDialog(null, mensagem.toString());
@@ -163,7 +157,6 @@ public class VisualizacaoElementos extends javax.swing.JFrame {
         if (espacos.isEmpty()) {
             JOptionPane.showMessageDialog(null, "A lista de espaços físicos está vazia");
         } else {
-            System.out.println("Espaços Físicos:");
 
             StringBuilder mensagem = new StringBuilder();
 
