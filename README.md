@@ -4,9 +4,12 @@
 como aulas regulares, ou esporádicas, como seminários, palestras e defesas de TCC.</p>
 Vídeo explicativo do projeto (gravado para apresentar ao professor): https://youtu.be/lY_Jm0YqiFU <br>
 <br>
+<div align="center" >
 <img src="imgs\tela-inicial.png" width="300px" align="center" alt="menu inicial">
-<img src="imgs\opcoes.png" align="center" width="300px" alt="menu inicial">
-
+   <br>
+   <br>
+<img src="imgs\opcoes.png" align="center" width="400px" alt="menu inicial">
+</div>
 ## Funcionalidades
 
 ### Registro e Gerenciamento de eventos
