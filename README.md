@@ -5,7 +5,7 @@ como aulas regulares, ou esporádicas, como seminários, palestras e defesas de 
 Vídeo explicativo do projeto (gravado para apresentar ao professor): https://youtu.be/lY_Jm0YqiFU <br>
 <br>
 <img src="imgs\tela-inicial.png" width="300px" align="center" alt="menu inicial">
-<img src="imgs\opcoes.png" align="center" alt="menu inicial">
+<img src="imgs\opcoes.png" align="center" width="300px" alt="menu inicial">
 
 ## Funcionalidades
 
