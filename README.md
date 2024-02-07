@@ -2,7 +2,10 @@
 
 <p>Este projeto visa desenvolver um sistema de software para auxiliar um departamento acadêmico na gestão e alocação de espaços físicos para atividades fixas e eventuais. O departamento recebe solicitações que podem ser de natureza fixa, 
 como aulas regulares, ou esporádicas, como seminários, palestras e defesas de TCC.</p>
-Vídeo explicativo do projeto (gravado para apresentar ao professor): https://youtu.be/lY_Jm0YqiFU
+Vídeo explicativo do projeto (gravado para apresentar ao professor): https://youtu.be/lY_Jm0YqiFU <br>
+<br>
+<img src="imgs\tela-inicial.png" width="300px" align="center" alt="menu inicial">
+<img src="imgs\opcoes.png" align="center" alt="menu inicial">
 
 ## Funcionalidades
 
