@@ -10,6 +10,7 @@ Vídeo explicativo do projeto (gravado para apresentar ao professor): https://yo
    <br>
 <img src="imgs\opcoes.png" align="center" width="400px" alt="menu inicial">
 </div>
+
 ## Funcionalidades
 
 ### Registro e Gerenciamento de eventos
